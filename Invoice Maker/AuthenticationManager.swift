@@ -23,8 +23,7 @@ class AuthenticationManager: ObservableObject {
     private let keychainAccount = "user_session"
     
     init() {
-        // Para desarrollo: descomenta la siguiente línea si quieres forzar logout al iniciar
-        deleteSessionFromKeychain() // <- Temporalmente activado para testing
+        // Check for existing session on initialization
         checkExistingSession()
     }
     

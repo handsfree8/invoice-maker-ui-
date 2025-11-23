@@ -4,9 +4,11 @@ struct ContentView: View {
     // MARK: - Properties
     @StateObject private var authManager = AuthenticationManager()
     @StateObject private var invoiceStorage = InvoiceStorage()
+    @StateObject private var customerStorage = CustomerStorage()
     @State private var showingEditView = false
     @State private var invoiceToEdit: Invoice?
     @State private var showingSplash = false
+    @State private var selectedTab = 0
     
     // MARK: - Constants
     private enum DemoData {
@@ -48,44 +50,69 @@ struct ContentView: View {
     }
     
     private var mainInvoiceView: some View {
-        NavigationView {
-            invoicesList
-                .navigationTitle("Invoices")
-                .navigationBarTitleDisplayMode(.inline)
-                .toolbar {
-                    ToolbarItem(placement: .principal) {
-                        HStack {
-                            Image("rl-logo")
-                                .resizable()
-                                .scaledToFit()
-                                .frame(width: 30, height: 30)
-                                .clipShape(RoundedRectangle(cornerRadius: 6))
-                        }
-                    }
-                    
-                    ToolbarItem(placement: .navigationBarLeading) {
-                        Menu {
-                            Label(authManager.getUserDisplayName(), systemImage: "person.circle")
-                            
-                            Divider()
-                            
-                            Button(action: authManager.logout) {
-                                Label("Sign Out", systemImage: "power")
+        TabView(selection: $selectedTab) {
+            // Invoices Tab
+            NavigationView {
+                invoicesList
+                    .navigationTitle("Invoices")
+                    .navigationBarTitleDisplayMode(.inline)
+                    .toolbar {
+                        ToolbarItem(placement: .principal) {
+                            HStack {
+                                Image("rl-logo")
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(width: 30, height: 30)
+                                    .clipShape(RoundedRectangle(cornerRadius: 6))
                             }
-                        } label: {
-                            Image(systemName: "person.circle")
-                                .foregroundColor(.blue)
+                        }
+                        
+                        ToolbarItem(placement: .navigationBarLeading) {
+                            Menu {
+                                Label(authManager.getUserDisplayName(), systemImage: "person.circle")
+                                
+                                Divider()
+                                
+                                Button(action: authManager.logout) {
+                                    Label("Sign Out", systemImage: "power")
+                                }
+                            } label: {
+                                Image(systemName: "person.circle")
+                                    .foregroundColor(.blue)
+                            }
+                        }
+                        
+                        ToolbarItemGroup(placement: .navigationBarTrailing) {
+                            EditButton()
+                            addInvoiceButton
                         }
                     }
-                    
-                    ToolbarItemGroup(placement: .navigationBarTrailing) {
-                        EditButton()
-                        addInvoiceButton
+                    .sheet(isPresented: $showingEditView) {
+                        InvoiceEditView(invoice: invoiceToEdit, store: invoiceStorage)
                     }
+            }
+            .tabItem {
+                Label("Invoices", systemImage: "doc.text")
+            }
+            .tag(0)
+            
+            // Customers Tab
+            CustomersView(customerStorage: customerStorage)
+                .tabItem {
+                    Label("Customers", systemImage: "person.2")
                 }
-                .sheet(isPresented: $showingEditView) {
-                    InvoiceEditView(invoice: invoiceToEdit, store: invoiceStorage)
-                }
+                .tag(1)
+            
+            // Settings Tab
+            SettingsView(
+                invoiceStorage: invoiceStorage,
+                customerStorage: customerStorage
+            )
+            .environmentObject(authManager)
+            .tabItem {
+                Label("Settings", systemImage: "gearshape")
+            }
+            .tag(2)
         }
     }
 }

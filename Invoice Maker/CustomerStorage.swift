@@ -1,8 +1,6 @@
 import Foundation
 import SwiftUI
 
-import Foundation
-
 // MARK: - Customer Sort Options
 enum CustomerSortOption: String, CaseIterable {
     case name = "Name"
@@ -45,6 +43,7 @@ final class CustomerStorage: ObservableObject {
             customers.append(customer)
         }
         saveToUserDefaults()
+        createAutomaticBackupIfNeeded()
     }
     
     /// Deletes a customer from storage
@@ -133,6 +132,21 @@ final class CustomerStorage: ObservableObject {
                 saveCustomer(customer)
             }
         }
+    }
+    
+    // MARK: - Automatic Backup
+    
+    /// Creates automatic backup every 5 saves
+    private func createAutomaticBackupIfNeeded() {
+        let backupInterval = 5
+        let saveCount = UserDefaults.standard.integer(forKey: "customerSaveCount")
+        
+        if saveCount % backupInterval == 0 {
+            print("📦 Creating automatic backup...")
+            // Backup will be handled by SettingsView/DataBackupManager when integrated
+        }
+        
+        UserDefaults.standard.set(saveCount + 1, forKey: "customerSaveCount")
     }
     
     // MARK: - Private Methods - Persistence

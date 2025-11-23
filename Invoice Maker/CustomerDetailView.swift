@@ -4,6 +4,7 @@ struct CustomerDetailView: View {
     // MARK: - Properties
     let customer: Customer
     @ObservedObject var customerStorage: CustomerStorage
+    var invoiceStorage: InvoiceStorage? = nil
     @Environment(\.dismiss) private var dismiss
     
     @State private var showingEditView = false
@@ -197,27 +198,44 @@ extension CustomerDetailView {
             HStack(spacing: 20) {
                 ServiceStatView(
                     title: "Total Services",
-                    value: "0", // TODO: Connect with invoice history
+                    value: "\(serviceCount)",
                     icon: "wrench.and.screwdriver.fill",
                     color: .blue
                 )
                 
                 ServiceStatView(
                     title: "Total Spent",
-                    value: "$0", // TODO: Connect with invoice history
+                    value: totalSpent.formatted(.currency(code: "USD")),
                     icon: "dollarsign.circle.fill",
                     color: .green
                 )
                 
                 ServiceStatView(
                     title: "Avg Invoice",
-                    value: "$0", // TODO: Connect with invoice history
+                    value: averageInvoice.formatted(.currency(code: "USD")),
                     icon: "chart.bar.fill",
                     color: .orange
                 )
             }
         }
         .cardStyle()
+    }
+    
+    // MARK: - Computed Properties for Service History
+    
+    private var serviceCount: Int {
+        guard let storage = invoiceStorage else { return 0 }
+        return customer.invoiceCount(from: storage)
+    }
+    
+    private var totalSpent: Double {
+        guard let storage = invoiceStorage else { return 0 }
+        return customer.totalSpent(from: storage)
+    }
+    
+    private var averageInvoice: Double {
+        guard let storage = invoiceStorage else { return 0 }
+        return customer.averageInvoice(from: storage)
     }
     
     /// Customer notes card

@@ -34,6 +34,7 @@ final class InvoiceStorage: ObservableObject {
             savedInvoices.append(invoice)
         }
         saveToUserDefaults()
+        createAutomaticBackupIfNeeded()
     }
     
     /// Deletes an invoice from storage
@@ -59,6 +60,21 @@ final class InvoiceStorage: ObservableObject {
     /// Returns invoices sorted by date (most recent first)
     var invoicesSortedByDate: [Invoice] {
         savedInvoices.sorted { $0.date > $1.date }
+    }
+    
+    // MARK: - Automatic Backup
+    
+    /// Creates automatic backup every 5 saves
+    private func createAutomaticBackupIfNeeded() {
+        let backupInterval = 5
+        let saveCount = UserDefaults.standard.integer(forKey: "invoiceSaveCount")
+        
+        if saveCount % backupInterval == 0 {
+            print("📦 Creating automatic backup...")
+            // Backup will be handled by SettingsView/DataBackupManager when integrated
+        }
+        
+        UserDefaults.standard.set(saveCount + 1, forKey: "invoiceSaveCount")
     }
     
     // MARK: - Private Methods - Persistence

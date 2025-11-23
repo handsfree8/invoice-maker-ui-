@@ -18,58 +18,70 @@ struct LoginView: View {
     @State private var logoOpacity: Double = 0.0
     @State private var formOffset: CGFloat = 50
     @State private var formOpacity: Double = 0.0
+    @FocusState private var focusedField: Field?
+    
+    enum Field: Hashable {
+        case username
+        case password
+    }
     
     var body: some View {
         GeometryReader { geometry in
-            ZStack {
-                // Background gradient Rose Legacy colors
-                LinearGradient(
-                    gradient: Gradient(colors: [
-                        Color.purple.opacity(0.12),
-                        Color(.systemBackground),
-                        Color.purple.opacity(0.08)
-                    ]),
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                )
-                .ignoresSafeArea()
-                
-                // Círculos de fondo con colores Rose Legacy
+            ScrollView {
                 ZStack {
-                    Circle()
-                        .fill(Color.purple.opacity(0.06))
-                        .frame(width: 300, height: 300)
-                        .offset(x: -120, y: -250)
-                        .scaleEffect(logoScale * 0.8)
+                    // Background gradient Rose Legacy colors
+                    LinearGradient(
+                        gradient: Gradient(colors: [
+                            Color.purple.opacity(0.12),
+                            Color(.systemBackground),
+                            Color.purple.opacity(0.08)
+                        ]),
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                    .frame(height: max(geometry.size.height, 800))
                     
-                    Circle()
-                        .fill(Color.white.opacity(0.08))
-                        .frame(width: 200, height: 200)
-                        .offset(x: 150, y: 150)
-                        .scaleEffect(logoScale * 1.2)
+                    // Círculos de fondo con colores Rose Legacy
+                    ZStack {
+                        Circle()
+                            .fill(Color.purple.opacity(0.06))
+                            .frame(width: 300, height: 300)
+                            .offset(x: -120, y: -250)
+                            .scaleEffect(logoScale * 0.8)
+                        
+                        Circle()
+                            .fill(Color.white.opacity(0.08))
+                            .frame(width: 200, height: 200)
+                            .offset(x: 150, y: 150)
+                            .scaleEffect(logoScale * 1.2)
+                        
+                        Circle()
+                            .fill(Color.purple.opacity(0.04))
+                            .frame(width: 400, height: 400)
+                            .offset(x: 50, y: 350)
+                            .scaleEffect(logoScale * 0.6)
+                    }
                     
-                    Circle()
-                        .fill(Color.purple.opacity(0.04))
-                        .frame(width: 400, height: 400)
-                        .offset(x: 50, y: 350)
-                        .scaleEffect(logoScale * 0.6)
-                }
-                
-                VStack(spacing: 40) {
-                    Spacer()
-                    
-                    // Enhanced Logo Section
-                    logoSection
-                    
-                    // Enhanced Login Form
-                    loginFormSection
-                    
-                    Spacer()
-                    
-                    // Enhanced Footer
-                    footerSection
+                    VStack(spacing: 40) {
+                        Spacer()
+                            .frame(height: 60)
+                        
+                        // Enhanced Logo Section
+                        logoSection
+                        
+                        // Enhanced Login Form
+                        loginFormSection
+                        
+                        Spacer()
+                            .frame(height: 60)
+                        
+                        // Enhanced Footer
+                        footerSection
+                    }
+                    .frame(minHeight: geometry.size.height)
                 }
             }
+            .ignoresSafeArea(.keyboard)
         }
         .onAppear {
             startAnimations()
@@ -78,6 +90,14 @@ struct LoginView: View {
             Button("OK") { }
         } message: {
             Text(alertMessage)
+        }
+        .toolbar {
+            ToolbarItemGroup(placement: .keyboard) {
+                Spacer()
+                Button("Done") {
+                    focusedField = nil
+                }
+            }
         }
     }
     
@@ -205,6 +225,12 @@ extension LoginView {
                     .textFieldStyle(EnhancedTextFieldStyle())
                     .autocapitalization(.none)
                     .disableAutocorrection(true)
+                    .textContentType(.username)
+                    .submitLabel(.next)
+                    .focused($focusedField, equals: .username)
+                    .onSubmit {
+                        focusedField = .password
+                    }
             }
             
             // Password Field con colores adaptados
@@ -216,6 +242,14 @@ extension LoginView {
                 
                 SecureField("Enter your password", text: $password)
                     .textFieldStyle(EnhancedTextFieldStyle())
+                    .textContentType(.password)
+                    .submitLabel(.go)
+                    .focused($focusedField, equals: .password)
+                    .onSubmit {
+                        if !username.isEmpty && !password.isEmpty {
+                            handleLogin()
+                        }
+                    }
             }
             
             // Enhanced Login Button con estilo Rose Legacy

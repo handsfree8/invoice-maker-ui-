@@ -79,12 +79,11 @@ struct CustomersView: View {
             }
             .sheet(isPresented: $showingCustomerDetail) {
                 if let customer = selectedCustomer {
-                    CustomerDetailView(customer: customer, customerStorage: customerStorage)
-                }
-            }
-            .sheet(isPresented: $showingCustomerDetail) {
-                if let customer = selectedCustomer {
-                    CustomerDetailView(customer: customer, customerStorage: customerStorage)
+                    CustomerDetailView(
+                        customer: customer,
+                        customerStorage: customerStorage,
+                        invoiceStorage: InvoiceStorage()
+                    )
                 }
             }
         }

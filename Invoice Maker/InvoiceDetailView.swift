@@ -253,6 +253,7 @@ struct InvoiceDetailView: View {
         InvoicePDFView(invoice: invoice)
             .frame(width: PDFConstants.pageSize.width, height: PDFConstants.pageSize.height)
             .background(Color.white)
+            .colorScheme(.light)
             .environment(\.colorScheme, .light)
     }
     

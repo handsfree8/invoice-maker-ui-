@@ -124,6 +124,7 @@ extension InvoiceEditView {
                     // Description
                     HStack {
                         Text("Description")
+                            .foregroundColor(.primary)
                             .frame(width: 80, alignment: .leading)
                         TextField("Item description", text: $items[index].descriptionText)
                             .textFieldStyle(.roundedBorder)
@@ -134,6 +135,7 @@ extension InvoiceEditView {
                         VStack {
                             Text("Qty")
                                 .font(.caption)
+                                .foregroundColor(.primary)
                                 .frame(maxWidth: .infinity, alignment: .leading)
                             TextField("1", value: $items[index].quantity, format: .number)
                                 .textFieldStyle(.roundedBorder)
@@ -143,6 +145,7 @@ extension InvoiceEditView {
                         VStack {
                             Text("Unit Price")
                                 .font(.caption)
+                                .foregroundColor(.primary)
                                 .frame(maxWidth: .infinity, alignment: .leading)
                             TextField("0.00", value: $items[index].unitPrice, format: .currency(code: "USD"))
                                 .textFieldStyle(.roundedBorder)
@@ -152,6 +155,7 @@ extension InvoiceEditView {
                         VStack {
                             Text("Total")
                                 .font(.caption)
+                                .foregroundColor(.primary)
                                 .frame(maxWidth: .infinity, alignment: .leading)
                             Text(items[index].lineTotal, format: .currency(code: "USD"))
                                 .foregroundColor(.secondary)

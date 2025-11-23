@@ -36,6 +36,7 @@ struct InvoicePDFView: View {
     var body: some View {
         ZStack {
             Color.white
+                .ignoresSafeArea()
             
             VStack(alignment: .leading, spacing: LayoutConstants.sectionSpacing) {
                 headerSection
@@ -310,5 +311,5 @@ extension String {
     /// Returns true if the string is not empty
     var isNotEmpty: Bool {
         !isEmpty
-    }    Professional invoice management designed specifically for Rose Legacy Home Solutions. Create stunning invoices with ease.
+    }
 }
