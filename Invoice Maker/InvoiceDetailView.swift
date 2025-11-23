@@ -235,6 +235,52 @@ struct InvoiceDetailView: View {
     /// Generates the PDF with completion callback
     @MainActor
     private func generatePDF(completion: @escaping (Bool) -> Void) {
+        // Try the simpler ImageRenderer approach first (iOS 16+)
+        if #available(iOS 16.0, *) {
+            generatePDFWithImageRenderer(completion: completion)
+        } else {
+            // Fallback to UIHostingController approach
+            generatePDFWithHostingController(completion: completion)
+        }
+    }
+    
+    /// ALTERNATIVE METHOD 1: iOS 16+ ImageRenderer (más simple y confiable)
+    @available(iOS 16.0, *)
+    @MainActor
+    private func generatePDFWithImageRenderer(completion: @escaping (Bool) -> Void) {
+        print("📱 Using ImageRenderer method (iOS 16+)")
+        
+        let swiftUIView = createSwiftUIView()
+        let renderer = ImageRenderer(content: swiftUIView)
+        
+        // Set the size and scale
+        renderer.proposedSize = .init(PDFConstants.pageSize)
+        renderer.scale = 2.0 // Retina quality
+        
+        // Render to PDF directly
+        let pageRect = CGRect(origin: .zero, size: PDFConstants.pageSize)
+        let pdfRenderer = UIGraphicsPDFRenderer(bounds: pageRect)
+        
+        let pdfData = pdfRenderer.pdfData { context in
+            context.beginPage()
+            
+            // Render the view
+            renderer.render { size, renderInContext in
+                renderInContext(context.cgContext)
+            }
+        }
+        
+        print("📦 ImageRenderer PDF size: \(pdfData.count) bytes")
+        
+        // Save the PDF
+        savePDF(data: pdfData, completion: completion)
+    }
+    
+    /// ALTERNATIVE METHOD 2: UIHostingController (método original, fallback para iOS 15)
+    @MainActor
+    private func generatePDFWithHostingController(completion: @escaping (Bool) -> Void) {
+        print("📱 Using UIHostingController method (iOS 15)")
+        
         let swiftUIView = createSwiftUIView()
         let hostingController = createHostingController(with: swiftUIView)
         
@@ -270,8 +316,12 @@ struct InvoiceDetailView: View {
     private func renderPDF(from hostingController: UIHostingController<some View>, completion: @escaping (Bool) -> Void) {
         let pageRect = CGRect(origin: .zero, size: PDFConstants.pageSize)
         
+        print("📐 Page rect: \(pageRect)")
+        
         // Render to image first
         let image = renderToImage(from: hostingController, in: pageRect)
+        
+        print("🖼️ Image size: \(image.size)")
         
         guard image.size.width > 0 && image.size.height > 0 else {
             print("❌ Error: Generated image is empty")
@@ -288,26 +338,38 @@ struct InvoiceDetailView: View {
     
     /// Renders the hosting controller to an image
     private func renderToImage(from hostingController: UIHostingController<some View>, in pageRect: CGRect) -> UIImage {
+        print("🎨 Starting image render with bounds: \(pageRect)")
+        print("🖥️ Hosting controller view frame: \(hostingController.view.frame)")
+        
         let renderer = UIGraphicsImageRenderer(bounds: pageRect)
-        return renderer.image { context in
+        let image = renderer.image { context in
             // White background to ensure non-transparent rendering
             UIColor.white.setFill()
             context.fill(pageRect)
             
             // Render the view
-            hostingController.view.drawHierarchy(in: pageRect, afterScreenUpdates: true)
+            let didRender = hostingController.view.drawHierarchy(in: pageRect, afterScreenUpdates: true)
+            print("✏️ drawHierarchy result: \(didRender)")
         }
+        
+        print("🖼️ Rendered image size: \(image.size), scale: \(image.scale)")
+        return image
     }
     
     /// Creates PDF data from the rendered image
     private func createPDFData(from image: UIImage, in pageRect: CGRect) -> Data {
+        print("📝 Creating PDF data from image...")
+        
         let documentInfo = createPDFDocumentInfo()
         let pdfRenderer = UIGraphicsPDFRenderer(bounds: pageRect, format: UIGraphicsPDFRendererFormat())
         
-        return pdfRenderer.pdfData { pdfContext in
+        let data = pdfRenderer.pdfData { pdfContext in
             pdfContext.beginPage()
             image.draw(in: pageRect)
         }
+        
+        print("📦 PDF data created: \(data.count) bytes")
+        return data
     }
     
     /// Creates PDF document metadata
