@@ -502,17 +502,59 @@ struct PDFKitView: UIViewRepresentable {
     let pdfURL: URL
     
     func makeUIView(context: Context) -> PDFView {
+        print("📄 PDFKitView makeUIView called")
+        print("📂 PDF URL: \(pdfURL)")
+        print("📁 File exists: \(FileManager.default.fileExists(atPath: pdfURL.path))")
+        
         let pdfView = PDFView()
         pdfView.backgroundColor = UIColor.systemBackground
         pdfView.autoScales = true
         pdfView.displayMode = .singlePageContinuous
         pdfView.displayDirection = .vertical
+        
+        // Try to load PDF immediately
+        loadPDF(into: pdfView)
+        
         return pdfView
     }
     
     func updateUIView(_ pdfView: PDFView, context: Context) {
+        print("🔄 PDFKitView updateUIView called")
+        loadPDF(into: pdfView)
+    }
+    
+    private func loadPDF(into pdfView: PDFView) {
+        // Check if file exists
+        guard FileManager.default.fileExists(atPath: pdfURL.path) else {
+            print("❌ PDF file does not exist at: \(pdfURL.path)")
+            return
+        }
+        
+        // Try to load PDF
         if let pdfDocument = PDFDocument(url: pdfURL) {
+            print("✅ PDF loaded successfully, pages: \(pdfDocument.pageCount)")
             pdfView.document = pdfDocument
+            
+            // Force immediate display
+            if let firstPage = pdfDocument.page(at: 0) {
+                print("📄 First page bounds: \(firstPage.bounds(for: .mediaBox))")
+                pdfView.go(to: firstPage)
+            }
+        } else {
+            print("❌ Failed to create PDFDocument from URL: \(pdfURL)")
+            
+            // Try reading file data directly
+            if let data = try? Data(contentsOf: pdfURL) {
+                print("📦 File data size: \(data.count) bytes")
+                if let pdfFromData = PDFDocument(data: data) {
+                    print("✅ PDF loaded from data, pages: \(pdfFromData.pageCount)")
+                    pdfView.document = pdfFromData
+                } else {
+                    print("❌ Failed to create PDFDocument from data")
+                }
+            } else {
+                print("❌ Failed to read file data")
+            }
         }
     }
 }
